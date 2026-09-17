@@ -13,6 +13,12 @@
 
 > ✨ 一个由 Rust 和 Tokio 驱动的简单、安全、去中心化的异地组网方案
 
+> ⚠️ **本仓库为「内网 HTTP 代理上网环境」专用分支**
+>
+> 本分支针对 **Windows 公司内网、仅能通过 HTTP proxy 代理访问外网** 的环境专门改写，新增 `--http-proxy` 选项（环境变量 `ET_HTTP_PROXY`），使 `tcp/ws/wss/faketcp` 出站对等连接可通过 HTTP CONNECT 代理建立隧道。
+>
+> **如果你不在上述内网代理环境中，请勿使用本分支**，请直接使用官方版本：[EasyTier/EasyTier](https://github.com/EasyTier/EasyTier)。
+
 <p align="center">
 <img src="assets/config-page.png" width="300" alt="配置页面">
 <img src="assets/running-page.png" width="300" alt="运行页面">
@@ -78,6 +84,22 @@ cargo install --git https://github.com/EasyTier/EasyTier.git easytier
 附加步骤：
 
 [一键注册系统服务](https://easytier.cn/guide/network/oneclick-install-as-service.html)（系统启动时自动后台运行）
+
+### 🔌 内网 HTTP 代理环境用法（本分支新增）
+
+在公司内网仅能通过 HTTP proxy 上网的环境中，使用 `--http-proxy` 让节点经代理连接共享节点：
+
+```bash
+# Windows 请以管理员权限运行
+easytier-core -d --network-name abc --network-secret abc -p tcp://<共享节点IP>:11010 --http-proxy http://user:pass@proxy.company.com:8080
+```
+
+说明：
+
+- 代理地址格式为 `http://[user:pass@]host:port`，可携带 Basic 认证信息。
+- 未指定 `--http-proxy` 时，会依次回退读取 `HTTPS_PROXY` / `http_proxy` / `ALL_PROXY` 环境变量。
+- 仅影响 `tcp/ws/wss/faketcp` 出站连接，UDP 穿透不受影响。
+- 非此类内网代理环境请使用官方版本，无需该参数。
 
 ### 🚀 基本用法
 

@@ -13,6 +13,12 @@
 
 > ✨ A simple, secure, decentralized virtual private network solution powered by Rust and Tokio
 
+> ⚠️ **This repository is a dedicated fork for intranet environments that only allow outbound access through an HTTP proxy**
+>
+> This fork is specially modified for **Windows corporate intranets where outbound internet access is only possible via an HTTP proxy**. It adds the `--http-proxy` option (env `ET_HTTP_PROXY`) so outbound `tcp/ws/wss/faketcp` peer connections can be tunneled through an HTTP CONNECT proxy.
+>
+> **If you are NOT in such an intranet proxy environment, do NOT use this fork** — please use the official release: [EasyTier/EasyTier](https://github.com/EasyTier/EasyTier).
+
 <p align="center">
 <img src="assets/config-page.png" width="300" alt="config page">
 <img src="assets/running-page.png" width="300" alt="running page">
@@ -78,6 +84,22 @@ cargo install --git https://github.com/EasyTier/EasyTier.git easytier
 Additional steps:
 
 [One-Click Register Service](https://easytier.cn/en/guide/network/oneclick-install-as-service.html) (Automatically start when the system boots and run in the background)
+
+### 🔌 Usage in an intranet HTTP proxy environment (new in this fork)
+
+In a corporate intranet where outbound access is only possible through an HTTP proxy, use `--http-proxy` to reach shared nodes through the proxy:
+
+```bash
+# Run as administrator on Windows
+easytier-core -d --network-name abc --network-secret abc -p tcp://<shared-node-ip>:11010 --http-proxy http://user:pass@proxy.company.com:8080
+```
+
+Notes:
+
+- Proxy URL format is `http://[user:pass@]host:port`; Basic auth is supported.
+- When `--http-proxy` is not set, `HTTPS_PROXY` / `http_proxy` / `ALL_PROXY` environment variables are honored as a fallback.
+- Only affects outbound `tcp/ws/wss/faketcp` connections; UDP traversal is unaffected.
+- If you are not in such an intranet proxy environment, use the official release — this option is not needed there.
 
 ### 🚀 Basic Usage
 
