@@ -321,6 +321,24 @@ pub(crate) async fn connect_tcp(
     let purpose = options.purpose;
     let bind_options = options.bind;
 
+    // Manual peer dials (tcp://, ws://, wss://, faketcp://) are routed through
+    // an HTTP CONNECT proxy when one is configured and the target is not a
+    // local address. The proxy connection reuses the original bind options so
+    // socket marks, devices and Android protection keep working.
+    if matches!(
+        purpose,
+        TcpSocketPurpose::ManualConnect | TcpSocketPurpose::FakeTcp
+    ) && super::proxy::should_route_through_proxy(remote_addr)
+        && let Some(proxy) = super::proxy::http_proxy()
+    {
+        let proxy_addr = proxy.proxy_socket_addr().await?;
+        let socket = create_tcp_socket(proxy_addr, &bind_options).await?;
+        let mut stream = socket.connect(proxy_addr).await?;
+        prepare_connected_tcp_socket(&stream, purpose)?;
+        super::proxy::http_connect(&mut stream, remote_addr, &proxy).await?;
+        return Ok(RuntimeTcpSocket::new(stream));
+    }
+
     let socket = create_tcp_socket(remote_addr, &bind_options).await?;
     let stream = socket.connect(remote_addr).await?;
     prepare_connected_tcp_socket(&stream, purpose)?;

@@ -216,6 +216,13 @@ struct NetworkOptions {
     peers: Vec<String>,
 
     #[arg(
+        long,
+        env = "ET_HTTP_PROXY",
+        help = "Route outbound tcp/ws/wss peer connections through an HTTP CONNECT proxy. Example: --http-proxy http://user:pass@127.0.0.1:8080"
+    )]
+    http_proxy: Option<String>,
+
+    #[arg(
         short,
         long,
         env = "ET_EXTERNAL_NODE",
@@ -1514,6 +1521,8 @@ fn win_service_main(arg: Vec<std::ffi::OsString>) {
 async fn run_main(cli: Cli) -> anyhow::Result<()> {
     defer!(dump_profile(0););
     log::init(&cli.logging_options, true)?;
+
+    crate::socket::proxy::set_http_proxy(cli.network_options.http_proxy.as_deref())?;
 
     let manager = Arc::new(native_cli_instance_manager().with_config_path(cli.config_dir.clone()));
 
